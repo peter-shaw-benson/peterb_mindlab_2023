@@ -1,7 +1,4 @@
-%% initialization
-clear; clc; close all
-
-function [] = extract_song_audio(song_dir, output_dir)
+function [] = extract_song_audio(song_dir, output_dir, filename)
     %%%%%%%%%%%%%%% the rest should be fine as it is %%%%%%%%%%%%%%%%%%%%
     cd(song_dir)
     file_name = dir('*.mp3');
@@ -133,5 +130,5 @@ function [] = extract_song_audio(song_dir, output_dir)
     cd ..
     data_MIR = array2table(data_table,'VariableNames',feature_name);
     data = [song_title,data_MIR];
-    writetable(data,fullfile(output_dir, 'audioExtraction.csv'));
+    writetable(data,fullfile(output_dir, filename));
 end
