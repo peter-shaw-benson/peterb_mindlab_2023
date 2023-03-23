@@ -9,6 +9,8 @@ def download_video(video_url, path, video_name):
     # download the file
     out_file = video_audio.download(output_path=path, filename=video_name)
 
+    # convert file to mp3
+
     # save the file as mp3
     base, ext = os.path.splitext(out_file)
     new_file = base + '.mp3'

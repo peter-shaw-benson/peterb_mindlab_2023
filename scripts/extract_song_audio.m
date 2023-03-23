@@ -1,5 +1,6 @@
 function [] = extract_song_audio(song_dir, output_dir, filename)
     %%%%%%%%%%%%%%% the rest should be fine as it is %%%%%%%%%%%%%%%%%%%%
+    disp(song_dir)
     cd(song_dir)
     file_name = dir('*.mp3');
     for ii = 1:length(file_name)

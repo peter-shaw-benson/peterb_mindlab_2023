@@ -1,0 +1,87 @@
+---
+title: "MA_groove"
+author: "Nick Kathios"
+date: '2023-03-23'
+output: html_document
+---
+#load packages
+```{r}
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(MatchIt)
+```
+
+#read in data
+```{r}
+move <- read.csv(file = "moveratings.csv")
+pleasure <- read.csv(file = "pleasureratings.csv")
+master <- read.csv(file = "SLfollowupscored.csv")
+```
+
+#define MAs
+
+#define MC (?) #might not be necessary?
+
+#run analyses
+
+# Perceived Complexity - generated frm other study
+
+Get general anhedonics. Higher PASS scores: more anhedonic.
+```{r}
+master$PASS_noaudio <- master$PASS_total - master$PASS_sound
+
+# Filter out participants with no MET scores
+master <- master[complete.cases(master$BMRQ_total),]
+master <- master[complete.cases(master$MET_rhythmicscore),]
+
+hedonic_mean <- mean(master$PASS_noaudio)
+hedonic_sd <- sd(master$PASS_noaudio)
+
+hedonic_thresh <- hedonic_mean + hedonic_sd
+
+hedonic_df <- master[which(master$PASS_noaudio < hedonic_thresh),]
+```
+
+Get musical anhedonics
+```{r}
+mus_hedonic_thresh <- quantile(master$BMRQ_total, probs = c(.1), na.rm=TRUE)
+
+master$anhedonic <- as.factor(as.numeric(master$BMRQ_total < mus_hedonic_thresh))
+
+mus_anhedonic_df <- master[which(master$BMRQ_total < mus_hedonic_thresh),]
+```
+
+Match anhedonics with hedonic counterparts
+```{r}
+matched <- MatchIt::matchit(anhedonic ~ MET_rhythmicscore + MET_melodicscore + PASS_noaudio, data=master, method='nearest', ratio=1)
+summary(matched)
+df.match <- MatchIt::match.data(matched)[1:ncol(master)]
+```
+
+```{r}
+df.match_merged <- merge(df.match, pleasure[, 2:14], by="ID")
+```
+
+
+
+# Analysis
+
+Mixed Model Analysis. 
+Modeling "random" effects of participants' individual taste. 
+Random slopes: Individuals have different "slopes" on their liking rating curves. 
+Can also model out random effects of stimuli, such as a common drum pattern. 
+Multiplicative models: interaction between variables. 
+(1 | x) is a random effect.
+```{r}
+model1 <- lmer(data=df.match_merged, rating ~ poly(PerceivedComplexity, 2, raw=TRUE)*anhedonic + (1 | ID) + (1 | stim))
+
+summary(model1)
+```
+
+```{r}
+model2 <-lmer(data=pleasure, rating ~ tert*BMRQ_total + (1 | ID) + (1 | stim))
+
+summary(model2)
+```
+
